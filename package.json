@@ -5,6 +5,7 @@
   "scripts": {
     "vo": "node --loader ts-node/esm src/scripts/example.ts",
     "vo:pw": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts",
+    "nvda:pw": "node --loader ts-node/esm src/scripts/playwright-nvda.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -12,7 +13,10 @@
   "description": "",
   "type": "module",
   "devDependencies": {
-    "playwright": "^1.58.2"
+    "@types/node": "^25.4.0",
+    "playwright": "^1.58.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@guidepup/guidepup": "^0.24.1"
