@@ -5,7 +5,11 @@
   "scripts": {
     "vo": "node --loader ts-node/esm src/scripts/example.ts",
     "vo:pw": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts",
-    "nvda:pw": "node --loader ts-node/esm src/scripts/playwright-nvda.ts",
+    "nvda:pw": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts",
+    "nvda:pw:all": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --mode=all",
+    "nvda:element": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --element=",
+    "nvda:snapshot": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --snapshot=./snapshots/baseline.json",
+    "nvda:compare": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --compare",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
