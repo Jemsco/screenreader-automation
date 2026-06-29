@@ -1,0 +1,63 @@
+{
+  "url": "http://127.0.0.1:5500/src/pages/test-page.html",
+  "timestamp": "2026-03-19T19:55:06.768Z",
+  "mode": "actionable",
+  "element": null,
+  "results": [
+    {
+      "selector": "input[role=\"text\"]#name[0]",
+      "itemText": "dash",
+      "announced": "dash",
+      "domInfo": {
+        "tag": "input",
+        "role": "text",
+        "type": "text",
+        "tabindex": null
+      }
+    },
+    {
+      "selector": "input[role=\"radio\"]#red[1]",
+      "itemText": "dash",
+      "announced": "dash",
+      "domInfo": {
+        "tag": "input",
+        "role": "radio",
+        "type": "radio",
+        "tabindex": null
+      }
+    },
+    {
+      "selector": "input[role=\"radio\"]#blue[2]",
+      "itemText": "dash",
+      "announced": "dash",
+      "domInfo": {
+        "tag": "button",
+        "role": "button",
+        "type": "submit",
+        "tabindex": null
+      }
+    },
+    {
+      "selector": "button[role=\"button\"][3]",
+      "itemText": "dash",
+      "announced": "dash",
+      "domInfo": {
+        "tag": "a",
+        "role": null,
+        "type": null,
+        "tabindex": null
+      }
+    },
+    {
+      "selector": "a[4]",
+      "itemText": "dash",
+      "announced": "dash",
+      "domInfo": {
+        "tag": "a",
+        "role": null,
+        "type": null,
+        "tabindex": null
+      }
+    }
+  ]
+}
