@@ -1,53 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Accessibility Test Page</title>
+  </head>
 
-<head>
-	<meta charset="UTF-8">
-	<title>Accessibility Test Page</title>
-</head>
+  <body>
+    <header>
+      <h1>Sample Accessibility Test</h1>
+    </header>
 
-<body>
-	<header>
-		<h1>Sample Accessibility Test</h1>
-	</header>
+    <main>
+      <section>
+        <h2>Form Section</h2>
+        <form id="test-form">
+          <label for="name">Name (required)</label>
+          <input type="text" id="name" name="name" role="textbox" />
 
-	<main>
-		<section>
-			<h2>Form Section</h2>
-			<form id="test-form">
+          <fieldset>
+            <legend>Choose a color</legend>
+            <input
+              type="radio"
+              id="red"
+              name="color"
+              value="red"
+              role="radio"
+            />
+            <label for="red">Red</label>
 
-				<label for="name">Name (required)</label>
-				<input type="text" id="name" name="name" role="text">
+            <input
+              type="radio"
+              id="green"
+              name="color"
+              value="green"
+              role="radio"
+            />
+            <label for="green">Green</label>
+          </fieldset>
 
-				<fieldset>
-					<legend>Choose a color</legend>
-					<input type="radio" id="red" name="color" value="red" role="radio">
-					<label for="red">Red</label>
+          <button type="submit" role="button">Submit</button>
+        </form>
+      </section>
+      <br />
+      <section>
+        <h2>Images Section</h2>
+        <img src="example.jpg" alt="" role="presentation" />
+        <img src="decorative.png" role="presentation" />
+      </section>
 
-					<input type="radio" id="green" name="color" value="green" role="radio">
-					<label for="green">Green</label>
-				</fieldset>
+      <section>
+        <h2>Links Section</h2>
+        <a href="#" role="link">Click me </a>
+        <a href="https://example.com" role="link">Visit Example </a>
+      </section>
+    </main>
 
-				<button type="submit" role="button">Submit</button>
-			</form>
-		</section>
-		<br>
-		<section>
-			<h2>Images Section </h2>
-			<img src="example.jpg" alt="" role="presentation">
-			<img src="decorative.png" role="presentation">
-		</section>
-
-		<section>
-			<h2>Links Section</h2>
-			<a href="#">Click me</a>
-			<a href="https://example.com">Visit Example</a>
-		</section>
-	</main>
-
-	<footer>
-		<p>&copy; 2025 Accessibility Test</p>
-	</footer>
-</body>
-
+    <footer>
+      <p>&copy; 2025 Accessibility Test</p>
+    </footer>
+  </body>
 </html>
