@@ -1,6 +1,7 @@
 import { nvda } from "@guidepup/guidepup";
 import { chromium, type Page } from "playwright";
 import { getActionableElements } from "../core/getActionableElements.js";
+import { NvdaReader, scanPage } from "../core/scanner.js";
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -61,7 +62,7 @@ interface DomInfo {
 const args = process.argv;
 const mode: Mode = args.includes("--mode=all") ? "all" : "actionable";
 
-// --element="[element][data-testid='[the id]']"  
+// --element="[element][data-testid='[the id]']"
 const elementArg = args.find((a) => a.startsWith("--element="));
 const elementSelector = elementArg
   ? elementArg.split("=").slice(1).join("=")
@@ -73,7 +74,7 @@ const snapshotPath = snapshotArg
   ? snapshotArg.split("=").slice(1).join("=")
   : null;
 
-  // --compare ./snapshots/baseline.json ./snapshots/current.json
+// --compare ./snapshots/baseline.json ./snapshots/current.json
 const compareIdx = args.indexOf("--compare");
 let comparePaths: [string, string] | null = null;
 if (compareIdx !== -1) {
@@ -216,28 +217,6 @@ async function getDomInfo(page: Page): Promise<DomInfo | null> {
   });
 }
 
-async function waitForScreenReader(
-  stableMs = 2000,
-  pollMs = 100,
-  timeoutMs = 10000,
-): Promise<string> {
-  let last = "";
-  let stableFor = 0;
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const current = (await nvda.lastSpokenPhrase()) ?? "";
-    if (current === last) {
-      stableFor += pollMs;
-    } else {
-      stableFor = 0;
-      last = current;
-    }
-    if (stableFor >= stableMs) return last;
-    await new Promise((r) => setTimeout(r, pollMs));
-  }
-  return last;
-}
-
 /** Returns a stable string key for a given element (tag + role + index fallback). */
 async function getSelectorKey(
   el: Awaited<ReturnType<typeof getActionableElements>>[number],
@@ -268,8 +247,7 @@ async function main() {
   console.log("Page loaded");
 
   console.log("Starting NVDA");
-  await nvda.start();
-
+  const reader = new NvdaReader();
   const results: ElementResult[] = [];
 
   // ── Branch: single --element selector ──────────────────────────────────────
@@ -278,16 +256,16 @@ async function main() {
     const el = page.locator(elementSelector).first();
 
     await el.focus();
-    await nvda.perform(nvda.keyboardCommands.moveToFocusObject);
+    await reader.moveToFocus();
 
-    const stableAnnounced = await waitForScreenReader();
+    const announced = await reader.getAnnouncement();
     const itemText = await nvda.itemText();
     const domInfo = await getDomInfo(page);
 
     const result: ElementResult = {
       selector: elementSelector,
       itemText: itemText ?? "",
-      announced: stableAnnounced,
+      announced,
       domInfo,
     };
 
@@ -301,35 +279,35 @@ async function main() {
 
     await page.bringToFront();
     await page.keyboard.press("Tab");
-    await elements[0]?.focus();
-    await nvda.perform(nvda.keyboardCommands.moveToFocusObject);
 
-    for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
-      if (!element) continue;
-      const stableAnnounced = await waitForScreenReader();
-      const itemText = await nvda.itemText();
-      const domInfo = await getDomInfo(page);
-      const selectorKey = await getSelectorKey(element, i);
+    const scanResults = await scanPage(page, reader, {
+      async onResult({ index, element, announcement }) {
+        const itemText = await nvda.itemText();
+        const domInfo = await getDomInfo(page);
+        const selectorKey = await getSelectorKey(element, index);
 
-      const result: ElementResult = {
-        selector: selectorKey,
-        itemText: itemText ?? "",
-        announced: stableAnnounced,
-        domInfo,
-      };
+        const result: ElementResult = {
+          selector: selectorKey,
+          itemText: itemText ?? "",
+          announced: announcement,
+          domInfo,
+        };
 
-      if (mode === "all" || (mode === "actionable" && isActionable(domInfo))) {
-        console.log(result);
-        results.push(result);
-      }
+        if (
+          mode === "all" ||
+          (mode === "actionable" && isActionable(domInfo))
+        ) {
+          console.log(result);
+          results.push(result);
+        }
+      },
+    });
 
-      await page.keyboard.press("Tab");
-      await nvda.perform(nvda.keyboardCommands.moveToFocusObject);
+    if (scanResults.length === 0) {
+      console.log("No actionable elements were scanned.");
     }
   }
 
-  await nvda.stop();
   await browser.close();
   console.log("Playwright closed");
 

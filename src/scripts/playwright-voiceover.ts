@@ -1,6 +1,8 @@
 import { voiceOver } from "@guidepup/guidepup";
 import { chromium, type Page } from "playwright";
 import { getActionableElements } from "../core/getActionableElements.js";
+import { VoiceOverReader } from "../core/screenreaders/voiceOverReader.js";
+import { scanPage } from "../core/scanner.js";
 
 type Mode = "all" | "actionable";
 const url = "http://127.0.0.1:5500/src/pages/test-page.html";
@@ -52,30 +54,6 @@ async function getDomInfo(page: Page) {
   });
 }
 
-async function waitForVoiceOver(
-  stableMs = 500,
-  pollMs = 100,
-  timeoutMs = 500,
-): Promise<string> {
-  let last = "";
-  let stableFor = 0;
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const current = (await voiceOver.lastSpokenPhrase()) ?? "";
-    if (current !== last) {
-      stableFor = 0;
-      last = current;
-    } else {
-      stableFor += pollMs;
-    }
-    if (stableFor >= stableMs) {
-      return last;
-    }
-    await new Promise((resolve) => setTimeout(resolve, pollMs));
-  }
-  return last;
-}
-
 (async () => {
   // Start VoiceOver.
   console.log("Launching Playwright");
@@ -88,13 +66,11 @@ async function waitForVoiceOver(
   await page.setViewportSize({ width: 650, height: 698 });
 
   await page.goto(url, { waitUntil: "networkidle" });
-  // await page.waitForLoadState("domcontentloaded");
   await page.waitForTimeout(1000);
   console.log("Page loaded");
 
   console.log("Starting VoiceOver");
-  await voiceOver.start();
-
+  const reader = new VoiceOverReader();
   const elements = await getActionableElements(page);
   console.log(`Found ${elements.length} actionable elements on the page.`);
 
@@ -106,46 +82,24 @@ async function waitForVoiceOver(
     );
   }
 
-  await page.bringToFront();
-  // await page.click('body');
-  await page.keyboard.press("Tab");
-  // await page.evaluate(() => document.body.focus());
-  await elements[0]?.focus();
-  await voiceOver.perform(
-    voiceOver.commanderCommands.MOVE_VOICEOVER_CURSOR_TO_KEYBOARD_FOCUS,
-  );
+  const scanResults = await scanPage(page, reader, {
+    async onResult(result) {
+      const itemText = await voiceOver.itemText();
+      const domInfo = await getDomInfo(page);
 
-  for (let i = 0; i < elements.length - 1; i++) {
-    const element = elements[i];
-    const stableAnnounced = await waitForVoiceOver();
+      if (mode === "all") {
+        console.log(result);
+        return;
+      }
+      if (mode === "actionable" && isActionable(domInfo)) {
+        console.log(result);
+      }
+    },
+  });
 
-    // Try reading the announced text; fallback to lastSpokenPhrase
-    let itemText = await voiceOver.itemText();
-    let announced = stableAnnounced;
-    const domInfo = await getDomInfo(page);
-
-    if (mode === "all") {
-      console.log({
-        itemText,
-        announced,
-        domInfo,
-      });
-      continue;
-    }
-    if (mode === "actionable" && isActionable(domInfo)) {
-      console.log({
-        itemText,
-        announced,
-        domInfo,
-      });
-    }
-
-    await page.keyboard.press("Tab");
-    await voiceOver.perform(
-      voiceOver.commanderCommands.MOVE_VOICEOVER_CURSOR_TO_KEYBOARD_FOCUS,
-    );
+  if (scanResults.length === 0) {
+    console.log("No actionable elements were scanned.");
   }
-  await voiceOver.stop();
 
   await browser.close();
   console.log("Playwright closed");
