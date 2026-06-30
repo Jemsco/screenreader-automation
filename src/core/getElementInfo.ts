@@ -1,11 +1,5 @@
 import type { ElementHandle } from "playwright";
-
-export interface ElementInfo {
-  tag: string;
-  role: string | null;
-  type: string | null;
-  text: string;
-}
+import type { ElementInfo } from "./models.js";
 
 export async function getElementInfo(
   element: ElementHandle,

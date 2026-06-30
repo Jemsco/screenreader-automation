@@ -33,26 +33,27 @@ export class VoiceOverReader implements ScreenReader {
   // There may be a better way to do this.
   // TODO: adjust the timeoutMs length for slower devices
   async waitForAnnouncement(): Promise<string> {
-    const timeoutMs = 500;
-    const pollMs = 0.01;
-    const started = Date.now();
+    // const timeoutMs = 500;
+    // const pollMs = 0.01;
+    // const started = Date.now();
 
-    while (Date.now() - started < timeoutMs) {
-      const phraseLog = await voiceOver.spokenPhraseLog();
-      if (phraseLog.length > 0) {
-        await new Promise((r) => setTimeout(r, pollMs));
-        const finalLog = await voiceOver.spokenPhraseLog();
-        log(`finalLog: ${finalLog.join(" ").trim()}`);
-        return finalLog.join(" ").trim();
-      }
-      log(`Waiting in WhileLOop... ${Date.now() - started} ms elapsed`);
-      // await new Promise((r) => setTimeout(r, 3000));
-    }
-    return "";
+    // while (Date.now() - started < timeoutMs) {
+    // const phraseLog = await voiceOver.spokenPhraseLog();
+    // if (phraseLog.length > 0) {
+    //   await new Promise((r) => setTimeout(r, pollMs));
+    //   const finalLog = await voiceOver.spokenPhraseLog();
+    //   log(`finalLog: ${finalLog.join(" ").trim()}`);
+    //   return finalLog.join(" ").trim();
+    // }
+    // log(`Waiting in WhileLOop... ${Date.now() - started} ms elapsed`);
+    // await new Promise((r) => setTimeout(r, 3000));
+    // }
+    // return "";
+    return (await voiceOver.lastSpokenPhrase()) ?? "";
   }
 
   async itemText(): Promise<string> {
-    return (await voiceOver.spokenPhraseLog())?.[0] ?? "";
+    return (await voiceOver.lastSpokenPhrase()) ?? "";
   }
 
   async stop(): Promise<void> {

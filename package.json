@@ -5,10 +5,18 @@
   "scripts": {
     "vo": "node --loader ts-node/esm src/scripts/example.ts",
     "vo:pw": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts",
+    "vo:pw:all": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --mode=all",
+    "vo:element": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --element=",
+    "vo:snapshot": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --snapshot=./snapshots/current.json",
+    "vo:snapshot:baseline": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --snapshot=./snapshots/baseline.json",
+    "vo:snapshot:current": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --snapshot=./snapshots/current.json",
+    "vo:compare": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --compare",
     "nvda:pw": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts",
     "nvda:pw:all": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --mode=all",
     "nvda:element": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --element=",
     "nvda:snapshot": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --snapshot=./snapshots/baseline.json",
+    "nvda:snapshot:baseline": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --snapshot=./snapshots/baseline.json",
+    "nvda:snapshot:current": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --snapshot=./snapshots/current.json",
     "nvda:compare": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --compare",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

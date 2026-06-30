@@ -1,24 +1,28 @@
 {
+  "schemaVersion": 1,
   "url": "http://127.0.0.1:5500/src/pages/test-page.html",
-  "timestamp": "2026-03-19T19:55:06.768Z",
+  "timestamp": "2026-06-30T19:55:44.998Z",
   "mode": "actionable",
   "element": null,
+  "screenReader": "VoiceOver",
   "results": [
     {
-      "selector": "input[role=\"text\"]#name[0]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "input",
+      "itemText": "",
+      "announced": "",
+      "screenReader": "VoiceOver",
       "domInfo": {
         "tag": "input",
-        "role": "text",
+        "role": "textbox",
         "type": "text",
         "tabindex": null
       }
     },
     {
-      "selector": "input[role=\"radio\"]#red[1]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "input",
+      "itemText": "Google Chrome for Testing is not responding. Google Chrome for Testing Accessibility Test Page - Google Chrome for Testing window Name (required) edit text has keyboard focus",
+      "announced": "G",
+      "screenReader": "VoiceOver",
       "domInfo": {
         "tag": "input",
         "role": "radio",
@@ -27,9 +31,22 @@
       }
     },
     {
-      "selector": "input[role=\"radio\"]#blue[2]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "input",
+      "itemText": "Red radio button, 1 of 2",
+      "announced": "R",
+      "screenReader": "VoiceOver",
+      "domInfo": {
+        "tag": "input",
+        "role": "radio",
+        "type": "radio",
+        "tabindex": null
+      }
+    },
+    {
+      "selector": "button",
+      "itemText": "Green radio button, 2 of 2",
+      "announced": "G",
+      "screenReader": "VoiceOver",
       "domInfo": {
         "tag": "button",
         "role": "button",
@@ -38,23 +55,25 @@
       }
     },
     {
-      "selector": "button[role=\"button\"][3]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "a",
+      "itemText": "Submit button",
+      "announced": "S",
+      "screenReader": "VoiceOver",
       "domInfo": {
         "tag": "a",
-        "role": null,
+        "role": "link",
         "type": null,
         "tabindex": null
       }
     },
     {
-      "selector": "a[4]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "a",
+      "itemText": "link Click me",
+      "announced": "l",
+      "screenReader": "VoiceOver",
       "domInfo": {
         "tag": "a",
-        "role": null,
+        "role": "link",
         "type": null,
         "tabindex": null
       }

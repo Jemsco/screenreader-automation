@@ -2,16 +2,7 @@ import { getActionableElements } from "./getActionableElements.js";
 import type { Page } from "playwright";
 import { getElementInfo } from "./getElementInfo.js";
 import type { ScreenReader } from "./screenreaders/screenReader.js";
-
-export interface ScanResult {
-  index: number;
-  tag: string;
-  role: string | null;
-  type: string | null;
-  text: string;
-  announcement: string;
-  itemText: string;
-}
+import type { ScanResult } from "./models.js";
 
 const start = performance.now();
 
@@ -36,14 +27,12 @@ export async function scanPage(
     const results: ScanResult[] = [];
     await page.bringToFront();
     await elements[0]?.focus();
-    await reader.moveToFocus();
+    // await reader.moveToFocus();
 
     for (const [index, element] of elements.entries()) {
       const text = await element.textContent();
 
       log(`Focusing ${text}`);
-
-      // await reader.clearLog();
 
       await page.evaluate((el) => {
         (el as HTMLElement).focus();
@@ -56,6 +45,7 @@ export async function scanPage(
       const info = await getElementInfo(element);
       const result: ScanResult = {
         index,
+        element,
         tag: info.tag,
         role: info.role,
         type: info.type,
