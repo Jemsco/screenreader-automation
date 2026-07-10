@@ -8,12 +8,12 @@ export interface CliOptions {
 }
 
 export function parseCliArgs(args: string[]): CliOptions {
+  console.log("args:", args);
   const mode: Mode = args.includes("--mode=all") ? "all" : "actionable";
 
-  const elementArg = args.find((a) => a.startsWith("--element="));
-  const elementSelector = elementArg
-    ? elementArg.split("=").slice(1).join("=")
-    : null;
+  const elementArg = args.find((arg) => arg.startsWith("--element="));
+
+  const elementSelector = elementArg?.substring("--element=".length) ?? null;
 
   const snapshotArg = args.find((a) => a.startsWith("--snapshot="));
   const snapshotPath = snapshotArg

@@ -1,25 +1,33 @@
 {
+  "schemaVersion": 1,
   "url": "http://127.0.0.1:5500/src/pages/test-page.html",
-  "timestamp": "2026-03-19T19:38:46.777Z",
+  "timestamp": "2026-07-10T14:36:48.721Z",
   "mode": "actionable",
   "element": null,
+  "screenReader": "VoiceOver",
   "results": [
     {
-      "selector": "input[role=\"text\"]#name[0]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "input",
+      "index": 0,
+      "itemText": "",
+      "announced": "",
+      "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "input",
-        "role": "text",
+        "role": "textbox",
         "type": "text",
         "tabindex": null
       }
     },
     {
-      "selector": "input[role=\"radio\"]#red[1]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "input",
+      "index": 1,
+      "itemText": "Moving VoiceOver cursor to keyboard cursor.",
+      "announced": "Moving VoiceOver cursor to keyboard cursor.",
+      "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "input",
         "role": "radio",
         "type": "radio",
@@ -27,10 +35,27 @@
       }
     },
     {
-      "selector": "input[role=\"radio\"]#green[2]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "input",
+      "index": 2,
+      "itemText": "Red radio button, 1 of 2",
+      "announced": "Red radio button, 1 of 2",
+      "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
+        "tag": "input",
+        "role": "radio",
+        "type": "radio",
+        "tabindex": null
+      }
+    },
+    {
+      "selector": "button",
+      "index": 3,
+      "itemText": "Green radio button, 2 of 2",
+      "announced": "Green radio button, 2 of 2",
+      "screenReader": "VoiceOver",
+      "domInfo": {
+        "index": 0,
         "tag": "button",
         "role": "button",
         "type": "submit",
@@ -38,23 +63,29 @@
       }
     },
     {
-      "selector": "button[role=\"button\"][3]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "a",
+      "index": 4,
+      "itemText": "Submit button",
+      "announced": "Submit button",
+      "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "a",
-        "role": null,
+        "role": "link",
         "type": null,
         "tabindex": null
       }
     },
     {
-      "selector": "a[4]",
-      "itemText": "dash",
-      "announced": "dash",
+      "selector": "a",
+      "index": 5,
+      "itemText": "link Click me",
+      "announced": "link Click me",
+      "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "a",
-        "role": null,
+        "role": "link",
         "type": null,
         "tabindex": null
       }

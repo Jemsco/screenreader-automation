@@ -20,25 +20,25 @@ export async function scanPage(
   reader: ScreenReader,
   options: ScanPageOptions = {},
 ): Promise<ScanResult[]> {
-  await reader.start();
-
   try {
     const elements = await getActionableElements(page);
     const results: ScanResult[] = [];
     await page.bringToFront();
-    await elements[0]?.focus();
+    // await elements[0]?.focus();
     // await reader.moveToFocus();
+    log("IN TRY BLOCK and before FOR LOOP");
 
     for (const [index, element] of elements.entries()) {
-      const text = await element.textContent();
-
-      log(`Focusing ${text}`);
+      log("IN FOR LOOP");
+      await reader.clearLog();
+      // await reader.moveToFocus();
 
       await page.evaluate((el) => {
         (el as HTMLElement).focus();
       }, element);
 
       await page.waitForFunction((e) => document.activeElement === e, element);
+      await page.waitForTimeout(100);
 
       const announcement = await reader.waitForAnnouncement();
       const itemText = await reader.itemText();
@@ -58,11 +58,11 @@ export async function scanPage(
       if (options.onResult) {
         await options.onResult(result);
       }
-      await reader.moveToFocus();
     }
 
     return results;
-  } finally {
-    await reader.stop();
+  } catch (error) {
+    console.error("Error scanning page:", error);
+    throw error;
   }
 }

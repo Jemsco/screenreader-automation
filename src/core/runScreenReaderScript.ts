@@ -6,6 +6,7 @@ import { getDomInfo, isActionableDomInfo } from "./screenReaderUtils.js";
 import type { RunScreenReaderScriptOptions } from "./models.js";
 import { compareSnapshotFiles } from "./snapshotComparer.js";
 import { type SnapshotElement } from "./models.js";
+import type { ScreenReader } from "./screenreaders/screenReader.js";
 
 export async function runScreenReaderScript(
   options: RunScreenReaderScriptOptions,
@@ -45,12 +46,29 @@ export async function runScreenReaderScript(
   const results: SnapshotElement[] = [];
 
   try {
+    await options.reader.start();
+    await page.waitForTimeout(3000);
     if (options.elementSelector) {
       console.log(`Targeting element: ${options.elementSelector}`);
       const el = page.locator(options.elementSelector).first();
 
+      await page.bringToFront();
       await el.focus();
+      console.log(
+        await page.evaluate(() => ({
+          active: document.activeElement?.id,
+          tag: document.activeElement?.tagName,
+        })),
+      );
+      // await page.waitForTimeout(3000);
       await options.reader.moveToFocus();
+      // await page.waitForTimeout(2000);
+      console.log(
+        await page.evaluate(() => ({
+          active: document.activeElement?.id,
+          tag: document.activeElement?.tagName,
+        })),
+      );
 
       const announced = await options.reader.waitForAnnouncement();
       const itemText = await options.reader.itemText();
@@ -103,6 +121,7 @@ export async function runScreenReaderScript(
       }
     }
   } finally {
+    await options.reader.stop();
     await browser.close();
     console.log("Playwright closed");
   }
