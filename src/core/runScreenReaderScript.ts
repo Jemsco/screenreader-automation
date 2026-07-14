@@ -39,7 +39,7 @@ export async function runScreenReaderScript(
   const page = await browser.newPage();
   await page.setViewportSize({ width: 650, height: 698 });
   await page.goto(options.url, { waitUntil: "networkidle" });
-  await page.waitForTimeout(1000);
+  // await page.waitForTimeout(1000);
   console.log("Page loaded");
 
   console.log(`Starting ${options.screenReaderName}`);
@@ -47,30 +47,18 @@ export async function runScreenReaderScript(
 
   try {
     await options.reader.start();
-    await page.waitForTimeout(3000);
     if (options.elementSelector) {
       console.log(`Targeting element: ${options.elementSelector}`);
       const el = page.locator(options.elementSelector).first();
 
       await page.bringToFront();
       await el.focus();
-      console.log(
-        await page.evaluate(() => ({
-          active: document.activeElement?.id,
-          tag: document.activeElement?.tagName,
-        })),
-      );
-      // await page.waitForTimeout(3000);
-      await options.reader.moveToFocus();
-      // await page.waitForTimeout(2000);
-      console.log(
-        await page.evaluate(() => ({
-          active: document.activeElement?.id,
-          tag: document.activeElement?.tagName,
-        })),
-      );
 
-      const announced = await options.reader.waitForAnnouncement();
+      await options.reader.syncVoiceOverCursor();
+
+      const announced = await options.reader.normalizeVoiceOverAnnouncement(
+        await options.reader.waitForAnnouncement(),
+      );
       const itemText = await options.reader.itemText();
       const domInfo = await (options.getDomInfo ?? getDomInfo)(page);
 

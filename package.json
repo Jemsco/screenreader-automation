@@ -29,6 +29,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@guidepup/guidepup": "^0.24.1"
+    "@guidepup/guidepup": "^0.28.1"
   }
 }

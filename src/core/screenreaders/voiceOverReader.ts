@@ -25,16 +25,13 @@ export class VoiceOverReader implements ScreenReader {
     await voiceOver.perform(command);
   }
 
-  async moveToFocus(): Promise<string> {
+  async syncVoiceOverCursor(): Promise<string> {
     const start = Date.now();
 
     log(`moveToFocus START ${start}`);
     await voiceOver.clearSpokenPhraseLog();
     log(`clearSpokenPhraseLog completed ${Date.now() - start}ms`);
 
-    // await voiceOver.perform(
-    //   voiceOver.commanderCommands.MOVE_VOICEOVER_CURSOR_TO_KEYBOARD_FOCUS,
-    // );
     await this.perform(
       voiceOver.commanderCommands.MOVE_VOICEOVER_CURSOR_TO_KEYBOARD_FOCUS,
     );
@@ -42,50 +39,56 @@ export class VoiceOverReader implements ScreenReader {
     return "";
   }
 
+  async describeItemWithKeyboardFocus(): Promise<void> {
+    await this.perform(
+      voiceOver.commanderCommands.DESCRIBE_ITEM_WITH_KEYBOARD_FOCUS,
+    );
+  }
+
+  async normalizeVoiceOverAnnouncement(text: string): Promise<string> {
+    return text.replace(/^Google Chrome.*?window\s+/, "").trim();
+  }
   // TODO: adjust the pollMs length for duplicate announcemets or stutters
   // There may be a better way to do this.
   // TODO: adjust the timeoutMs length for slower devices
   async waitForAnnouncement(): Promise<string> {
     const timeoutMs = 3000;
     const pollMs = 50;
+
     const started = Date.now();
     let previous = "";
+    let stableCount = 0;
 
     while (Date.now() - started < timeoutMs) {
       const phraseLog = await voiceOver.spokenPhraseLog();
       const current = phraseLog.join(" ").trim();
-      if (phraseLog.length > 0) {
-        // await new Promise((r) => setTimeout(r, pollMs));
-        // const finalLog = await voiceOver.spokenPhraseLog();
-        // log(`finalLog: ${finalLog.join(" ").trim()}`);
-        // return finalLog.join(" ").trim();
-        const result = current;
-        log(`Announcement captured: ${result}`);
-        if (current && current !== previous) {
+
+      if (current.length > 0) {
+        if (current === previous) {
+          stableCount++;
+        } else {
+          stableCount = 0;
           previous = current;
-
-          //   await new Promise((r) => setTimeout(r, 300));
-          // return result;
-          const finalLog = await voiceOver.spokenPhraseLog();
-          const final = finalLog.join(" ").trim();
-
-          log(`Final announcement: ${final}`);
-
-          return final;
         }
 
-        await new Promise((r) => setTimeout(r, 50));
+        // Speech has not changed for 3 polling cycles (~300ms)
+        if (stableCount >= 3) {
+          log(`Speech stabilized: ${current}`);
+          return current;
+        }
       }
-      // log(`Waiting in WhileLOop... ${Date.now() - started} ms elapsed`);
-      // await new Promise((r) => setTimeout(r, 3000));
-      // await new Promise((r) => setTimeout(r, pollMs));
+
+      await new Promise((r) => setTimeout(r, pollMs));
     }
-    return "";
-    // return (await voiceOver.lastSpokenPhrase()) ?? "";
+
+    return previous;
   }
 
   async itemText(): Promise<string> {
     return (await voiceOver.lastSpokenPhrase()) ?? "";
+  }
+  async clearItemTextLog(): Promise<void> {
+    await voiceOver.clearItemTextLog();
   }
 
   async stop(): Promise<void> {

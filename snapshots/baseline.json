@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "url": "http://127.0.0.1:5500/src/pages/test-page.html",
-  "timestamp": "2026-07-10T14:36:48.721Z",
+  "timestamp": "2026-07-14T18:21:00.082Z",
   "mode": "actionable",
   "element": null,
   "screenReader": "VoiceOver",
@@ -9,8 +9,8 @@
     {
       "selector": "input",
       "index": 0,
-      "itemText": "",
-      "announced": "",
+      "itemText": "Moving VoiceOver cursor to keyboard cursor.",
+      "announced": "Moving VoiceOver cursor to keyboard cursor.",
       "screenReader": "VoiceOver",
       "domInfo": {
         "index": 0,
@@ -23,20 +23,6 @@
     {
       "selector": "input",
       "index": 1,
-      "itemText": "Moving VoiceOver cursor to keyboard cursor.",
-      "announced": "Moving VoiceOver cursor to keyboard cursor.",
-      "screenReader": "VoiceOver",
-      "domInfo": {
-        "index": 0,
-        "tag": "input",
-        "role": "radio",
-        "type": "radio",
-        "tabindex": null
-      }
-    },
-    {
-      "selector": "input",
-      "index": 2,
       "itemText": "Red radio button, 1 of 2",
       "announced": "Red radio button, 1 of 2",
       "screenReader": "VoiceOver",
@@ -49,10 +35,24 @@
       }
     },
     {
-      "selector": "button",
-      "index": 3,
+      "selector": "input",
+      "index": 2,
       "itemText": "Green radio button, 2 of 2",
       "announced": "Green radio button, 2 of 2",
+      "screenReader": "VoiceOver",
+      "domInfo": {
+        "index": 0,
+        "tag": "input",
+        "role": "radio",
+        "type": "radio",
+        "tabindex": null
+      }
+    },
+    {
+      "selector": "button",
+      "index": 3,
+      "itemText": "Submit button",
+      "announced": "Submit button",
       "screenReader": "VoiceOver",
       "domInfo": {
         "index": 0,
@@ -65,8 +65,8 @@
     {
       "selector": "a",
       "index": 4,
-      "itemText": "Submit button",
-      "announced": "Submit button",
+      "itemText": "link Click me",
+      "announced": "link Click me",
       "screenReader": "VoiceOver",
       "domInfo": {
         "index": 0,
@@ -79,8 +79,8 @@
     {
       "selector": "a",
       "index": 5,
-      "itemText": "link Click me",
-      "announced": "link Click me",
+      "itemText": "link Visit Example",
+      "announced": "link Visit Example",
       "screenReader": "VoiceOver",
       "domInfo": {
         "index": 0,

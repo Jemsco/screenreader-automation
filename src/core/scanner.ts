@@ -24,14 +24,12 @@ export async function scanPage(
     const elements = await getActionableElements(page);
     const results: ScanResult[] = [];
     await page.bringToFront();
-    // await elements[0]?.focus();
-    // await reader.moveToFocus();
-    log("IN TRY BLOCK and before FOR LOOP");
+    await page.waitForTimeout(300);
+
+    await reader.clearLog();
 
     for (const [index, element] of elements.entries()) {
-      log("IN FOR LOOP");
       await reader.clearLog();
-      // await reader.moveToFocus();
 
       await page.evaluate((el) => {
         (el as HTMLElement).focus();
@@ -39,8 +37,10 @@ export async function scanPage(
 
       await page.waitForFunction((e) => document.activeElement === e, element);
       await page.waitForTimeout(100);
+      await reader.describeItemWithKeyboardFocus();
 
       const announcement = await reader.waitForAnnouncement();
+      await page.waitForTimeout(2000);
       const itemText = await reader.itemText();
       const info = await getElementInfo(element);
       const result: ScanResult = {
