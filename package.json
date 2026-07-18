@@ -10,7 +10,7 @@
     "vo:snapshot:baseline": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --snapshot=./snapshots/baseline.json",
     "vo:snapshot:current": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --snapshot=./snapshots/current.json",
     "vo:compare": "node --loader ts-node/esm src/scripts/playwright-voiceover.ts --compare",
-    "nvda:pw": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts",
+    "nvda:pw": "node --loader ts-node/esm src/scripts/playwright-nvda.ts",
     "nvda:pw:all": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --mode=all",
     "nvda:element": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --element=",
     "nvda:snapshot:baseline": "node --loader ts-node/esm --experimental-specifier-resolution=node src/scripts/playwright-nvda.ts --snapshot=./snapshots/baseline.json",

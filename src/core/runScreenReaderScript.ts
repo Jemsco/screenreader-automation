@@ -54,9 +54,9 @@ export async function runScreenReaderScript(
       await page.bringToFront();
       await el.focus();
 
-      await options.reader.syncVoiceOverCursor();
+      await options.reader.syncCursor();
 
-      const announced = await options.reader.normalizeVoiceOverAnnouncement(
+      const announced = await options.reader.normalizeAnnouncement(
         await options.reader.waitForAnnouncement(),
       );
       const itemText = await options.reader.itemText();

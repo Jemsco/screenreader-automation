@@ -1,5 +1,6 @@
 import { voiceOver } from "@guidepup/guidepup";
 import type { ScreenReader } from "./screenReader.js";
+import type { ElementHandle, Page } from "playwright";
 
 const start = performance.now();
 
@@ -25,7 +26,7 @@ export class VoiceOverReader implements ScreenReader {
     await voiceOver.perform(command);
   }
 
-  async syncVoiceOverCursor(): Promise<string> {
+  async syncCursor(): Promise<string> {
     const start = Date.now();
 
     log(`moveToFocus START ${start}`);
@@ -45,7 +46,7 @@ export class VoiceOverReader implements ScreenReader {
     );
   }
 
-  async normalizeVoiceOverAnnouncement(text: string): Promise<string> {
+  async normalizeAnnouncement(text: string): Promise<string> {
     return text.replace(/^Google Chrome.*?window\s+/, "").trim();
   }
   // TODO: adjust the pollMs length for duplicate announcemets or stutters
@@ -73,7 +74,6 @@ export class VoiceOverReader implements ScreenReader {
 
         // Speech has not changed for 3 polling cycles (~300ms)
         if (stableCount >= 3) {
-          log(`Speech stabilized: ${current}`);
           return current;
         }
       }
@@ -93,5 +93,20 @@ export class VoiceOverReader implements ScreenReader {
 
   async stop(): Promise<void> {
     await voiceOver.stop();
+  }
+  async focusElement(
+    page: Page,
+    element: ElementHandle,
+    _index: number,
+    _elements: ElementHandle[],
+  ): Promise<boolean> {
+    await page.evaluate((el) => (el as HTMLElement).focus(), element);
+
+    await page.waitForFunction((e) => document.activeElement === e, element);
+
+    return true;
+  }
+  async press(key: string): Promise<void> {
+    await voiceOver.press(key);
   }
 }

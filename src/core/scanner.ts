@@ -27,22 +27,27 @@ export async function scanPage(
     await page.waitForTimeout(300);
 
     await reader.clearLog();
-
     for (const [index, element] of elements.entries()) {
       await reader.clearLog();
+      const focused = await reader.focusElement(page, element, index, elements);
 
-      await page.evaluate((el) => {
-        (el as HTMLElement).focus();
-      }, element);
+      if (!focused) {
+        log(`Could not focus element ${index}`);
+        continue;
+      }
 
-      await page.waitForFunction((e) => document.activeElement === e, element);
       await page.waitForTimeout(100);
       await reader.describeItemWithKeyboardFocus();
 
-      const announcement = await reader.waitForAnnouncement();
+      let announcement = await reader.waitForAnnouncement();
+      announcement = await reader.normalizeAnnouncement(announcement);
       await page.waitForTimeout(2000);
-      const itemText = await reader.itemText();
+      const itemText = await reader.normalizeAnnouncement(
+        await reader.itemText(),
+      );
+
       const info = await getElementInfo(element);
+
       const result: ScanResult = {
         index,
         element,
@@ -53,13 +58,13 @@ export async function scanPage(
         announcement,
         itemText,
       };
+
       results.push(result);
 
       if (options.onResult) {
         await options.onResult(result);
       }
     }
-
     return results;
   } catch (error) {
     console.error("Error scanning page:", error);
