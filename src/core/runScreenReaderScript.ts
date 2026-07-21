@@ -17,8 +17,8 @@ export async function runScreenReaderScript(
 
     console.log("\n══════════════════════════════════════════");
     console.log(" SNAPSHOT DIFF");
-    console.log(`  Baseline : ${fileA}  (${comparison.snapshotA.timestamp})`);
-    console.log(`  Current  : ${fileB}  (${comparison.snapshotB.timestamp})`);
+    console.log(`  Baseline : ${fileA}  (${comparison.snapshotA.timestamp})`);
+    console.log(`  Current  : ${fileB}  (${comparison.snapshotB.timestamp})`);
     console.log("══════════════════════════════════════════\n");
 
     for (const line of comparison.lines) {
@@ -26,9 +26,9 @@ export async function runScreenReaderScript(
     }
 
     if (comparison.differences === 0) {
-      console.log("✅  No differences found.");
+      console.log("✅  No differences found.");
     } else {
-      console.log(`⚠️   ${comparison.differences} difference(s) found.`);
+      console.log(`⚠️   ${comparison.differences} difference(s) found.`);
       process.exit(1);
     }
     process.exit(0);
@@ -38,8 +38,7 @@ export async function runScreenReaderScript(
   const browser = await chromium.launch({ headless: false });
   const page = await browser.newPage();
   await page.setViewportSize({ width: 650, height: 698 });
-  await page.goto(options.url, { waitUntil: "networkidle" });
-  // await page.waitForTimeout(1000);
+  await page.goto(options.url, { waitUntil: "networkidle" }); // await page.waitForTimeout(1000);
   console.log("Page loaded");
 
   console.log(`Starting ${options.screenReaderName}`);
@@ -50,16 +49,38 @@ export async function runScreenReaderScript(
     if (options.elementSelector) {
       console.log(`Targeting element: ${options.elementSelector}`);
       const el = page.locator(options.elementSelector).first();
+      const elementHandle = await el.elementHandle();
+
+      if (!elementHandle) {
+        throw new Error(`Element not found: ${options.elementSelector}`);
+      }
 
       await page.bringToFront();
-      await el.focus();
+      await page.waitForTimeout(300); // Reset to body first so Tab navigation starts from a known position
 
-      await options.reader.syncCursor();
+      await page.evaluate(() => document.body.focus());
+      await page.waitForTimeout(100); // Navigate to the element via real keypresses so NVDA tracks focus
+
+      const focused = await options.reader.focusElement(
+        page,
+        elementHandle,
+        0,
+        [elementHandle],
+      );
+
+      if (!focused) {
+        throw new Error(`Could not focus element: ${options.elementSelector}`);
+      } // Clear accumulated navigation speech, then re-announce cleanly
+
+      await options.reader.clearLog();
+      await options.reader.describeItemWithKeyboardFocus();
 
       const announced = await options.reader.normalizeAnnouncement(
         await options.reader.waitForAnnouncement(),
       );
-      const itemText = await options.reader.itemText();
+      const itemText = await options.reader.normalizeAnnouncement(
+        await options.reader.itemText(),
+      );
       const domInfo = await (options.getDomInfo ?? getDomInfo)(page);
 
       const result: SnapshotElement = {

@@ -26,7 +26,6 @@ export async function scanPage(
     await page.bringToFront();
     await page.waitForTimeout(300);
 
-    await reader.clearLog();
     for (const [index, element] of elements.entries()) {
       await reader.clearLog();
       const focused = await reader.focusElement(page, element, index, elements);

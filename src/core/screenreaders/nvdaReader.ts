@@ -102,8 +102,12 @@ export class NvdaReader implements ScreenReader {
     return "";
   }
 
-  async focusElement(page: Page, target: ElementHandle): Promise<boolean> {
-    // First try normal Tab navigation
+  async focusElement(
+    page: Page,
+    target: ElementHandle,
+    index: number,
+    elements: ElementHandle[],
+  ): Promise<boolean> {
     const focused = await this.focusElementViaTab(page, target);
 
     if (focused) {
@@ -111,18 +115,24 @@ export class NvdaReader implements ScreenReader {
       return true;
     }
 
-    // NVDA recovery path
+    // Radio button fallback — re-focus previous element first so
+    // ArrowDown navigates within the group, not away from it
+    if (index > 0) {
+      const prev = elements[index - 1];
+      await page.evaluate((el) => (el as HTMLElement).focus(), prev);
+      await page.waitForTimeout(100);
+    }
+
     await this.press("ArrowDown");
     await page.waitForTimeout(300);
 
-    await page.evaluate((el) => {
-      (el as HTMLElement).focus();
-    }, target);
-
-    await page.waitForFunction((e) => document.activeElement === e, target);
+    const reached = await page
+      .waitForFunction((e) => document.activeElement === e, target)
+      .then(() => true)
+      .catch(() => false);
 
     await this.clearLog();
-    return true;
+    return reached;
   }
 
   async press(key: string): Promise<void> {
