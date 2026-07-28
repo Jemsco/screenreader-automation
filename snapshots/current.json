@@ -1,17 +1,19 @@
 {
   "schemaVersion": 1,
   "url": "http://127.0.0.1:5500/src/pages/test-page.html",
-  "timestamp": "2026-06-30T19:55:44.998Z",
+  "timestamp": "2026-07-27T23:41:31.983Z",
   "mode": "actionable",
   "element": null,
   "screenReader": "VoiceOver",
   "results": [
     {
       "selector": "input",
-      "itemText": "",
-      "announced": "",
+      "index": 0,
+      "itemText": "Name (required) edit text has keyboard focus",
+      "announced": "Name (required) edit text has keyboard focus",
       "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "input",
         "role": "textbox",
         "type": "text",
@@ -20,10 +22,12 @@
     },
     {
       "selector": "input",
-      "itemText": "Google Chrome for Testing is not responding. Google Chrome for Testing Accessibility Test Page - Google Chrome for Testing window Name (required) edit text has keyboard focus",
-      "announced": "G",
+      "index": 1,
+      "itemText": "Red radio button, 1 of 2 has keyboard focus",
+      "announced": "Red radio button, 1 of 2 has keyboard focus",
       "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "input",
         "role": "radio",
         "type": "radio",
@@ -32,10 +36,12 @@
     },
     {
       "selector": "input",
-      "itemText": "Red radio button, 1 of 2",
-      "announced": "R",
+      "index": 2,
+      "itemText": "Green radio button, 2 of 2 has keyboard focus",
+      "announced": "Green radio button, 2 of 2 has keyboard focus",
       "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "input",
         "role": "radio",
         "type": "radio",
@@ -44,10 +50,12 @@
     },
     {
       "selector": "button",
-      "itemText": "Green radio button, 2 of 2",
-      "announced": "G",
+      "index": 3,
+      "itemText": "Submit button has keyboard focus",
+      "announced": "Submit button has keyboard focus",
       "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "button",
         "role": "button",
         "type": "submit",
@@ -56,10 +64,12 @@
     },
     {
       "selector": "a",
-      "itemText": "Submit button",
-      "announced": "S",
+      "index": 4,
+      "itemText": "Click me link has keyboard focus",
+      "announced": "Click me link has keyboard focus",
       "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "a",
         "role": "link",
         "type": null,
@@ -68,10 +78,12 @@
     },
     {
       "selector": "a",
-      "itemText": "link Click me",
-      "announced": "l",
+      "index": 5,
+      "itemText": "Visit Example link has keyboard focus",
+      "announced": "Visit Example link has keyboard focus",
       "screenReader": "VoiceOver",
       "domInfo": {
+        "index": 0,
         "tag": "a",
         "role": "link",
         "type": null,
