@@ -1,41 +1,42 @@
-// export async function typeText(
-//   text: string,
-//   options: {
-//     initialDelay?: number;
-//     finalDelay?: number;
-//     acceleration?: number;
-//   } = {},
-// ): Promise<void> {
-//   const { initialDelay = 80, finalDelay = 5, acceleration = 0.98 } = options;
-
-//   let delay = initialDelay;
-
-//   for (const char of text) {
-//     process.stdout.write(char);
-
-//     await new Promise((resolve) => setTimeout(resolve, delay));
-
-//     delay = Math.max(finalDelay, delay * acceleration);
-//   }
-
-//   process.stdout.write("\n");
-// }
-
 export async function typeText(
   text: string,
   initialDelay = 80,
   finalDelay = 3,
 ): Promise<void> {
-  for (let i = 0; i < text.length; i++) {
-    process.stdout.write(text.charAt(i));
+  const trimmed = text.trimEnd();
+  const lines = trimmed.split("\n");
 
-    const progress = i / text.length;
+  // Pull off the last two lines separately
+  const lastLine = lines.pop() ?? "";
+  const secondToLastLine = lines.pop() ?? "";
+  const mainText = lines.join("\n") + "\n";
 
-    // Gradually speed up as the prompt is typed
+  // Type the main body with gradual acceleration
+  for (let i = 0; i < mainText.length; i++) {
+    process.stdout.write(mainText.charAt(i));
+    const progress = i / mainText.length;
     const delay = initialDelay - (initialDelay - finalDelay) * progress;
-
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    await new Promise((r) => setTimeout(r, delay));
   }
 
+  // Pause before second to last line
+  await new Promise((r) => setTimeout(r, 1500));
+
+  // Type second to last line at medium speed
+  for (const char of secondToLastLine) {
+    process.stdout.write(char);
+    await new Promise((r) => setTimeout(r, 60));
+  }
+  process.stdout.write("\n");
+
+  // Longer pause before the last line — the setup
+  await new Promise((r) => setTimeout(r, 1500));
+
+  // Type last line slowly — the payoff
+  for (const char of lastLine) {
+    process.stdout.write(char);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  await new Promise((r) => setTimeout(r, 1500));
   process.stdout.write("\n");
 }

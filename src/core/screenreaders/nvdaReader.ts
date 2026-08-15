@@ -108,7 +108,8 @@ export class NvdaReader implements ScreenReader {
     index: number,
     elements: ElementHandle[],
   ): Promise<boolean> {
-    const focused = await this.focusElementViaTab(page, target);
+    const maxPresses = elements.length + 1;
+    const focused = await this.focusElementViaTab(page, target, maxPresses);
 
     if (focused) {
       await this.clearLog();

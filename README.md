@@ -1,16 +1,3 @@
-None selected
-
-Skip to content
-Using Kunai Inc Mail with screen readers
-in:draft
-
-Conversations
-60% of 5 GB used
-Program Policies
-Powered by Google
-Last account activity: 0 minutes ago
-Details
-
 # Screen Reader Automation
 
 Automated accessibility testing using real screen readers driven by [Playwright](https://playwright.dev/) and [Guidepup](https://www.guidepup.dev/). Tests run against **VoiceOver** on macOS and **NVDA** on Windows, capturing what a screen reader actually announces for each element on a page.
@@ -24,6 +11,7 @@ Automated accessibility testing using real screen readers driven by [Playwright]
 - **Snapshot baseline and diff** — save a baseline, make changes, capture current state, and compare to surface regressions
 - **Cross-platform interface** — a shared `ScreenReader` interface means the same scanner logic runs on both macOS (VoiceOver) and Windows (NVDA)
 - **Structured output** — results include the announced text, item text, DOM tag, role, type, and selector for each element
+- **AI accessibility audit** — feed a snapshot to Claude or Gemini to generate a WCAG-referenced audit report (findings, severity, affected users, recommended fixes) as markdown
 
 ---
 
@@ -31,46 +19,46 @@ Automated accessibility testing using real screen readers driven by [Playwright]
 
 ```mermaid
 flowchart TD
-    A[CLI args\nprocess.argv] --> B[parseCliArgs\ncli.ts]
-    B --> C[runScreenReader\nrunScreenReader.ts]
-    C --> D[runScreenReaderScript\nrunScreenReaderScript.ts]
-    D --> E{elementSelector?}
-    E -- yes --> F[Single element scan]
-    E -- no --> G[scanPage\nscanner.ts]
-    G --> H[getActionableElements]
-    H --> I[focusElementViaTab\nreal keypresses]
-    I --> J{focused?}
-    J -- no --> K[ArrowDown fallback\nfor radio groups]
-    J -- yes --> L[clearLog]
-    K --> L
-    L --> M[describeItemWithKeyboardFocus]
-    M --> N[waitForAnnouncement]
-    N --> O[ScanResult]
-    F --> O
-    O --> P[onResult callback]
-    P --> Q{snapshotPath?}
-    Q -- yes --> R[writeSnapshotFile]
-    Q -- no --> S[console output]
+    A[CLI args\nprocess.argv] --> B[parseCliArgs\ncli.ts]
+    B --> C[runScreenReader\nrunScreenReader.ts]
+    C --> D[runScreenReaderScript\nrunScreenReaderScript.ts]
+    D --> E{elementSelector?}
+    E -- yes --> F[Single element scan]
+    E -- no --> G[scanPage\nscanner.ts]
+    G --> H[getActionableElements]
+    H --> I[focusElementViaTab\nreal keypresses]
+    I --> J{focused?}
+    J -- no --> K[ArrowDown fallback\nfor radio groups]
+    J -- yes --> L[clearLog]
+    K --> L
+    L --> M[describeItemWithKeyboardFocus]
+    M --> N[waitForAnnouncement]
+    N --> O[ScanResult]
+    F --> O
+    O --> P[onResult callback]
+    P --> Q{snapshotPath?}
+    Q -- yes --> R[writeSnapshotFile]
+    Q -- no --> S[console output]
 
-    C --> T{Screen reader kind}
-    T -- voiceover --> U[VoiceOverReader\nvoiceOverReader.ts]
-    T -- nvda --> V[NvdaReader\nnvdaReader.ts]
-    U --> W[ScreenReader interface\nscreenReader.ts]
-    V --> W
-    W --> X[Guidepup]
-    X --> Y[VoiceOver / NVDA]
+    C --> T{Screen reader kind}
+    T -- voiceover --> U[VoiceOverReader\nvoiceOverReader.ts]
+    T -- nvda --> V[NvdaReader\nnvdaReader.ts]
+    U --> W[ScreenReader interface\nscreenReader.ts]
+    V --> W
+    W --> X[Guidepup]
+    X --> Y[VoiceOver / NVDA]
 ```
 
 ---
 
 ## Prerequisites
 
-| Requirement    | macOS                | Windows                                    |
-| -------------- | -------------------- | ------------------------------------------ |
-| Node.js        | 18+                  | 18+                                        |
-| Screen reader  | VoiceOver (built-in) | [NVDA](https://www.nvaccess.org/download/) |
-| Playwright     | Chromium             | Chromium                                   |
-| Guidepup setup | Required             | Required                                   |
+| Requirement     | macOS                 | Windows                                     |
+| --------------- | --------------------- | ------------------------------------------- |
+| Node.js         | 18+                   | 18+                                         |
+| Screen reader   | VoiceOver (built-in)  | [NVDA](https://www.nvaccess.org/download/)  |
+| Playwright      | Chromium              | Chromium                                    |
+| Guidepup setup  | Required              | Required                                    |
 
 Run Guidepup's environment setup tool before first use:
 
@@ -102,30 +90,38 @@ npx playwright install chromium
 
 ```
 ├── snapshots/
-│   ├── baseline.json       # Saved baseline snapshot
-│   └── current.json        # Current snapshot for comparison
+│   ├── baseline.json       # Saved baseline snapshot
+│   └── current.json        # Current snapshot for comparison
 └── src/
-    ├── core/
-    │   ├── cli.ts                    # CLI argument parsing
-    │   ├── getActionableElements.ts  # Finds focusable elements on the page
-    │   ├── getElementInfo.ts         # Extracts tag, role, type, text from an element
-    │   ├── models.ts                 # Shared TypeScript types
-    │   ├── runScreenReader.ts        # Entry point — wires CLI args to script runner
-    │   ├── runScreenReaderScript.ts  # Orchestrates browser + screen reader session
-    │   ├── scanner.ts                # Page scanning loop with Tab/arrow navigation
-    │   ├── screenReaderKinds.ts      # Maps kind string to config/label
-    │   ├── screenReaderUtils.ts      # DOM info helpers
-    │   ├── snapshotComparer.ts       # Diffs two snapshot files
-    │   ├── snapshotWriter.ts         # Writes snapshot JSON to disk
-    │   └── screenreaders/
-    │       ├── screenReader.ts       # Shared ScreenReader interface
-    │       ├── voiceOverReader.ts    # VoiceOver implementation (macOS)
-    │       └── nvdaReader.ts         # NVDA implementation (Windows)
-    ├── pages/
-    │   └── test-page.html            # Sample test page
-    └── scripts/
-        ├── playwright-voiceover.ts   # VoiceOver entry point
-        └── playwright-nvda.ts        # NVDA entry point
+    ├── core/
+    │   ├── cli.ts                    # CLI argument parsing
+    │   ├── getActionableElements.ts  # Finds focusable elements on the page
+    │   ├── getElementInfo.ts         # Extracts tag, role, type, text from an element
+    │   ├── models.ts                 # Shared TypeScript types
+    │   ├── runScreenReader.ts        # Entry point — wires CLI args to script runner
+    │   ├── runScreenReaderScript.ts  # Orchestrates browser + screen reader session
+    │   ├── scanner.ts                # Page scanning loop with Tab/arrow navigation
+    │   ├── screenReaderKinds.ts      # Maps kind string to config/label
+    │   ├── screenReaderUtils.ts      # DOM info helpers
+    │   ├── snapshotComparer.ts       # Diffs two snapshot files
+    │   ├── snapshotWriter.ts         # Writes snapshot JSON to disk
+    │   └── screenreaders/
+    │       ├── screenReader.ts       # Shared ScreenReader interface
+    │       ├── voiceOverReader.ts    # VoiceOver implementation (macOS)
+    │       └── nvdaReader.ts         # NVDA implementation (Windows)
+    ├── ai/
+    │   ├── aiAnalyzer.ts             # Orchestrates the audit — reads snapshot, calls provider, writes report
+    │   ├── aiProvider.ts             # Claude (streaming) and Gemini (JSON) API calls with retry
+    │   ├── promptBuilder.ts          # Builds the accessibility-review prompt around the scan JSON
+    │   ├── claude.ts                 # `ai:claude` entry point
+    │   ├── gemini.ts                 # `ai:gemini` entry point
+    │   ├── demoPrompt.ts             # Intro text shown via the typewriter effect
+    │   └── terminalTyper.ts          # Typewriter-style terminal output
+    ├── pages/
+    │   └── test-page.html            # Sample test page
+    └── scripts/
+        ├── playwright-voiceover.ts   # VoiceOver entry point
+        └── playwright-nvda.ts        # NVDA entry point
 ```
 
 ---
@@ -241,17 +237,51 @@ npm run nvda:compare -- ./snapshots/baseline.json ./snapshots/current.json
 
 ```
 ══════════════════════════════════════════
- SNAPSHOT DIFF
-  Baseline : ./snapshots/baseline.json  (2026-01-15T10:00:00.000Z)
-  Current  : ./snapshots/current.json   (2026-01-15T11:00:00.000Z)
+ SNAPSHOT DIFF
+  Baseline : ./snapshots/baseline.json  (2026-01-15T10:00:00.000Z)
+  Current  : ./snapshots/current.json   (2026-01-15T11:00:00.000Z)
 ══════════════════════════════════════════
 
-⚠  input[index=1]
-   baseline : "Red, radio button, not checked, 1 of 2"
-   current  : "Red, 1 of 2"
+⚠  input[index=1]
+   baseline : "Red, radio button, not checked, 1 of 2"
+   current  : "Red, 1 of 2"
 
-⚠️   1 difference(s) found.
+⚠️   1 difference(s) found.
 ```
+
+---
+
+### AI accessibility audit
+
+Feed a snapshot JSON to an LLM to produce a WCAG-referenced audit report. Each finding includes what was observed, why it matters, who is affected, a WCAG success-criterion reference, a severity rating (Critical / High / Medium / Low), and a recommended fix.
+
+Set the relevant API key in a `.env` file first:
+
+```bash
+# .env
+ANTHROPIC_API_KEY=sk-ant-...   # for the Claude path
+GEMINI_API_KEY=...             # for the Gemini path
+```
+
+Then run against a snapshot:
+
+```bash
+# Claude — streams the markdown report to the terminal as it is generated
+npm run ai:claude -- ./snapshots/current.json
+
+# Gemini — returns structured JSON, then renders it to markdown
+npm run ai:gemini -- ./snapshots/current.json
+```
+
+Both paths save the report next to the snapshot as `<name>-claude-audit-report.md` or `<name>-gemini-audit-report.md`.
+
+**Optional environment variables (Claude path):**
+
+| Variable                         | Default                     | Purpose                             |
+| -------------------------------- | --------------------------- | ----------------------------------- |
+| `ANTHROPIC_API_KEY`              | —                           | API key (or `ANTHROPIC_AUTH_TOKEN`) |
+| `ANTHROPIC_BASE_URL`             | `https://api.anthropic.com` | Override the API endpoint           |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | `claude-sonnet-4-6`         | Model to use                        |
 
 ---
 
@@ -333,6 +363,6 @@ Please test changes against both VoiceOver (macOS) and NVDA (Windows) before sub
 
 ## License
 
-This project is licensed uner the [Business Source License 1.1](LICENSE).
-Comercial use reqquires explicit writtenpermission from the author and copyright owner.
+This project is licensed under the [Business Source License 1.1](LICENSE).
+Commercial use requires explicit written permission from the author and copyright owner.
 Contact jay.brass@gmail.com for more information.

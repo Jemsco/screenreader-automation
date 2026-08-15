@@ -1,181 +1,132 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { buildAccessibilityPrompt } from "./promptBuilder.js";
-import { analyzeWithGemini } from "./aiProvider.js";
+import { analyzeWithGemini, analyzeWithClaude } from "./aiProvider.js";
 import { typeText } from "./terminalTyper.js";
 import { demoPrompt } from "./demoPrompt.js";
+import type { Provider } from "./types.js";
+import type { SnapshotFile } from "../core/models.js";
 
-interface AuditFinding {
-  id: string;
-  severity: string;
-  category: string;
-  elementSelector: string;
-  observed: string;
-  whyItIsAProblem: string;
-  whoIsAffected: string;
-  recommendation: string;
-}
+// ---------------------------------------------------------------------------
+// Claude path — streams markdown directly to stdout and saves to file
+// ---------------------------------------------------------------------------
 
-interface GlobalInconsistency {
-  issue: string;
-  details: string;
-  impact: string;
-  developerAction: string;
-}
-
-function generateMarkdownReport(data: any, originalScan: any): string {
-  const meta = originalScan.auditMetadata || originalScan.scanOverview || {};
-
-  let dateStr = "Unknown Date";
-  if (meta.timestamp) {
-    try {
-      dateStr = new Date(meta.timestamp).toLocaleString();
-    } catch {
-      dateStr = meta.timestamp;
-    }
-  }
-
-  let md = `# 🔍 Accessibility Audit Report\n\n`;
-  md += `**URL Tested:** \`${meta.url || "N/A"}\`  \n`;
-  md += `**Timestamp:** ${dateStr}  \n`;
-  md += `**Environment:** ${meta.screenReader || "N/A"} on ${meta.environment || meta.overallStatus || "N/A"}  \n\n`;
-  md += `--- \n\n`;
-
-  const globalIssues = data.globalInconsistencies || data.globalIssues || [];
-  if (globalIssues.length > 0) {
-    md += `## 🚨 Global / Systemic Inconsistencies\n\n`;
-    for (const global of globalIssues) {
-      md += `### ⚠️ ${global.issue || "Systemic Issue"}\n`;
-      md += `* **Details:** ${global.details || global.description || "N/A"}\n`;
-      md += `* **Impact:** ${global.impact || "N/A"}\n`;
-      md += `* **Required Developer Action:** ${global.developerAction || global.recommendation || "N/A"}\n\n`;
-    }
-    md += `--- \n\n`;
-  }
-
-  md += `## 📋 Specific Accessibility Findings\n\n`;
-
-  const severityEmojis: Record<string, string> = {
-    Critical: "🔴",
-    High: "🟠",
-    Medium: "🟡",
-    Low: "🟢",
-  };
-
-  const findingsList = data.findings || data.issues || [];
-  for (const finding of findingsList) {
-    const severity = finding.severity || "Unknown";
-    const emoji = severityEmojis[severity] || "🔹";
-    md += `### ${emoji} ${finding.id || "UNASSIGNED"}: ${finding.category || "General finding"}\n`;
-    md += `* **Severity:** **${severity}**\n`;
-    md += `* **Target Element:** \`${finding.elementSelector || "N/A"}\`\n`;
-    md += `* **Observed Behavior:** ${finding.observed || finding.observation || "N/A"}\n`;
-    md += `* **Why It Is A Problem:** ${finding.whyItIsAProblem || finding.description || "N/A"}\n`;
-    md += `* **Who Is Affected:** ${finding.whoIsAffected || "N/A"}\n`;
-    md += `* **Recommendation:** ${finding.recommendation || "N/A"}\n\n`;
-  }
-
-  return md;
-}
-
-/**
- * Sanitizes markdown code fences and repairs internal string formatting errors.
- */
-function cleanJsonString(rawText: string): string {
-  let clean = rawText.trim();
-
-  if (clean.startsWith("```")) {
-    clean = clean.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-  }
-
-  clean = clean.trim();
-
-  // Escapes raw, literal control character newlines found inside text properties
-  clean = clean.replace(/[\r\n\t]+/g, " ");
-
-  return clean;
-}
-
-export async function analyzeAccessibility(
+async function runClaude(
   jsonFilePath: string,
+  jsonData: SnapshotFile,
 ): Promise<void> {
-  console.log(`Reading snapshot file: ${jsonFilePath}...`);
-  const jsonFileContent = await fs.readFile(jsonFilePath, "utf-8");
-  const jsonData = JSON.parse(jsonFileContent);
-
-  console.log("Generating prompt and sending request to Gemini...");
-  //   const response = await analyzeWithGemini(buildAccessibilityPrompt(jsonData));
   const prompt = buildAccessibilityPrompt(jsonData);
-
   await typeText(demoPrompt);
 
+  console.log("\n=======================================================");
+  console.log("           AI ACCESSIBILITY AUDIT — CLAUDE             ");
+  console.log("=======================================================\n");
+
+  // Collect chunks for file save while streaming to stdout
+  const chunks: string[] = [];
+
+  await analyzeWithClaude(prompt, (chunk) => {
+    process.stdout.write(chunk);
+    chunks.push(chunk);
+  });
+
+  // Ensure terminal ends on a new line after streaming
+  process.stdout.write("\n\n");
+  console.log("=======================================================\n");
+
+  // Save the streamed output as a markdown report
+  const fullReport = chunks.join("");
+  const parsedPath = path.parse(jsonFilePath);
+  const outputPath = path.join(
+    parsedPath.dir,
+    `${parsedPath.name}-claude-audit-report.md`,
+  );
+  await fs.writeFile(outputPath, fullReport, "utf-8");
+  console.log(`✅ Report saved to: ${outputPath}`);
+}
+
+// ---------------------------------------------------------------------------
+// Gemini path — waits for the full response, then writes the markdown verbatim
+// (same output contract as the Claude path; the shared prompt asks for markdown).
+// ---------------------------------------------------------------------------
+
+async function runGemini(
+  jsonFilePath: string,
+  jsonData: SnapshotFile,
+): Promise<void> {
+  const prompt = buildAccessibilityPrompt(jsonData);
+  await typeText(demoPrompt);
+
+  console.log("Calling Gemini...");
   const response = await analyzeWithGemini(prompt);
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `AI request failed: ${response.status} ${response.statusText}\n${errorText}`,
+      `Gemini request failed: ${response.status} ${response.statusText}\n${errorText}`,
     );
   }
 
+  // Gemini always wraps its output in a JSON envelope; the `text` part is the
+  // markdown document the prompt asked for.
   const rawPayload = await response.json();
-  const stringifiedJson = rawPayload.candidates?.[0]?.content?.parts?.[0]?.text;
+  const markdownReport = rawPayload.candidates?.[0]?.content?.parts?.[0]?.text;
 
-  if (!stringifiedJson) {
-    throw new Error(
-      "Failed to extract content text wrapper from Gemini API payload response.",
-    );
+  if (!markdownReport) {
+    throw new Error("Failed to extract content from Gemini response.");
   }
 
-  const sanitizedJson = cleanJsonString(stringifiedJson);
+  console.log("\n=======================================================");
+  console.log("           AI ACCESSIBILITY AUDIT — GEMINI             ");
+  console.log("=======================================================\n");
+  console.log(markdownReport);
+  console.log("=======================================================\n");
 
-  try {
-    const auditData = JSON.parse(sanitizedJson);
-    const markdownReport = generateMarkdownReport(auditData, jsonData);
+  const parsedPath = path.parse(jsonFilePath);
+  const outputPath = path.join(
+    parsedPath.dir,
+    `${parsedPath.name}-gemini-audit-report.md`,
+  );
+  await fs.writeFile(outputPath, markdownReport, "utf-8");
+  console.log(`✅ Report saved to: ${outputPath}`);
+}
 
-    console.log("\n=======================================================");
-    console.log("                AI AUDIT SUMMARY                       ");
-    console.log("=======================================================\n");
-    console.log(markdownReport);
-    console.log("=======================================================\n");
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
 
-    const parsedPath = path.parse(jsonFilePath);
-    const outputFileName = `${parsedPath.name}-audit-report.md`;
-    const outputPath = path.join(parsedPath.dir, outputFileName);
+export async function analyzeAccessibility(
+  jsonFilePath: string,
+  provider: Provider,
+): Promise<void> {
+  // const jsonFilePath = process.argv[2];
+  // if (!jsonFilePath) {
+  //   console.error(
+  //     "Usage: npm run ai:claude -- <path-to-json>\n" +
+  //     "       npm run ai:gemini -- <path-to-json>",
+  //   );
+  //   process.exit(1);
+  // }
 
-    await fs.writeFile(outputPath, markdownReport, "utf-8");
-    console.log(
-      `✅ Clean markdown report successfully saved to: ${outputPath}`,
-    );
-  } catch (parseError: any) {
-    console.error("\n❌ Failed to parse sanitized JSON payload from Gemini.");
+  // const provider = parseProvider(process.argv);
+  // console.log(`Provider: ${provider}`);
+  // console.log(`Reading snapshot: ${jsonFilePath}`);
 
-    // Help debug by printing out the exact segment where the JSON engine choked
-    if (parseError.message && parseError.message.includes("position")) {
-      const posMatch = parseError.message.match(/position\s+(\d+)/);
-      if (posMatch) {
-        const pos = parseInt(posMatch[1], 10);
-        console.error(`\nError Context around position ${pos}:`);
-        console.error(
-          sanitizedJson.slice(
-            Math.max(0, pos - 40),
-            Math.min(sanitizedJson.length, pos + 40),
-          ),
-        );
-        console.error("^".padStart(Math.min(pos, 41)));
-      }
-    }
-    throw parseError;
+  const jsonFileContent = await fs.readFile(jsonFilePath, "utf-8");
+  // JSON.parse returns `any`; assert the snapshot shape once here so the rest
+  // of the module is type-checked. This is an assertion, not validation — a
+  // malformed file would fail at runtime, not compile time.
+  const jsonData = JSON.parse(jsonFileContent) as SnapshotFile;
+
+  if (provider === "claude") {
+    await runClaude(jsonFilePath, jsonData).catch((err) => {
+      console.error("Claude analysis failed:", err);
+      process.exit(1);
+    });
+  } else {
+    await runGemini(jsonFilePath, jsonData).catch((err) => {
+      console.error("Gemini analysis failed:", err);
+      process.exit(1);
+    });
   }
 }
-
-const jsonFilePath = process.argv[2];
-if (!jsonFilePath) {
-  console.error("Usage: npm run ai -- <path-to-json-file>");
-  process.exit(1);
-}
-
-analyzeAccessibility(jsonFilePath).catch((error) => {
-  console.error("AI analysis failed:", error);
-  process.exit(1);
-});
