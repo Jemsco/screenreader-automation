@@ -12,7 +12,7 @@
     "vo:compare": "node --loader ts-node/esm --no-warnings src/scripts/playwright-voiceover.ts --compare",
     "nvda:pw": "node --loader ts-node/esm --no-warnings src/scripts/playwright-nvda.ts",
     "nvda:pw:all": "node --loader ts-node/esm --no-warnings --experimental-specifier-resolution=node --no-warnings src/scripts/playwright-nvda.ts --mode=all",
-    "nvda:element": "node --loader ts-node/esm --no-warnings --experimental-specifier-resolution=node --no-warnings src/scripts/playwright-nvda.ts --element=",
+    "nvda:element": "node --loader ts-node/esm --no-warnings --experimental-specifier-resolution=node --no-warnings src/scripts/playwright-nvda.ts",
     "nvda:snapshot:baseline": "node --loader ts-node/esm --no-warnings --experimental-specifier-resolution=node --no-warnings src/scripts/playwright-nvda.ts --snapshot=./snapshots/baseline.json",
     "nvda:snapshot:current": "node --loader ts-node/esm --no-warnings --experimental-specifier-resolution=node --no-warnings src/scripts/playwright-nvda.ts --snapshot=./snapshots/current.json",
     "nvda:compare": "node --loader ts-node/esm --no-warnings --experimental-specifier-resolution=node --no-warnings src/scripts/playwright-nvda.ts --compare",
