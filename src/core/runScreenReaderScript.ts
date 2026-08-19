@@ -53,7 +53,28 @@ export async function runScreenReaderScript(
 
       if (!elementHandle) {
         throw new Error(`Element not found: ${options.elementSelector}`);
-      }
+      } // Enumerate every focusable element in DOM (tab) order, then locate the
+      // target's real position within it. focusElement derives its Tab budget
+      // (elements.length + 1) and its radio-group fallback (index > 0) from
+      // this list — so passing the full ordering, not just [target], is what
+      // lets NVDA actually Tab all the way to elements past the first stop.
+      const focusable = await getActionableElements(page);
+      let targetIndex = -1;
+      for (let i = 0; i < focusable.length; i++) {
+        const isSame = await page.evaluate(([a, b]) => a === b, [
+          focusable[i],
+          elementHandle,
+        ] as const);
+        if (isSame) {
+          targetIndex = i;
+          break;
+        }
+      } // Fall back to the located handle alone if the selector points at
+      // something outside the actionable set. maxPresses stays small here,
+      // but that only affects unusual selectors — the common case above has
+      // the full budget.
+      const elements = targetIndex >= 0 ? focusable : [elementHandle];
+      const index = targetIndex >= 0 ? targetIndex : 0;
 
       await page.bringToFront();
       await page.waitForTimeout(300); // Reset to body first so Tab navigation starts from a known position
@@ -64,8 +85,8 @@ export async function runScreenReaderScript(
       const focused = await options.reader.focusElement(
         page,
         elementHandle,
-        0,
-        [elementHandle],
+        index,
+        elements,
       );
 
       if (!focused) {
