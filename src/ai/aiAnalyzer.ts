@@ -14,9 +14,12 @@ import type { SnapshotFile } from "../core/models.js";
 async function runClaude(
   jsonFilePath: string,
   jsonData: SnapshotFile,
+  provider: Provider,
 ): Promise<void> {
   const prompt = buildAccessibilityPrompt(jsonData);
-  await typeText(demoPrompt);
+  if (provider === "claude") {
+    await typeText(demoPrompt);
+  }
 
   console.log("\n=======================================================");
   console.log("           AI ACCESSIBILITY AUDIT — CLAUDE             ");
