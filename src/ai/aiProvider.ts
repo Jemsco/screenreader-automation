@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Gemini provider — unchanged from original, returns a Response for JSON parsing
+// Gemini provider — returns a Response for JSON parsing
 // ---------------------------------------------------------------------------
 
 export async function analyzeWithGemini(

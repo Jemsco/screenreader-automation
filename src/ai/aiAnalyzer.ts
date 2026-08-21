@@ -17,9 +17,7 @@ async function runClaude(
   provider: Provider,
 ): Promise<void> {
   const prompt = buildAccessibilityPrompt(jsonData);
-  if (provider === "claude") {
-    await typeText(demoPrompt);
-  }
+  await typeText(demoPrompt);
 
   console.log("\n=======================================================");
   console.log("           AI ACCESSIBILITY AUDIT — CLAUDE             ");
@@ -58,7 +56,7 @@ async function runGemini(
   jsonData: SnapshotFile,
 ): Promise<void> {
   const prompt = buildAccessibilityPrompt(jsonData);
-  await typeText(demoPrompt);
+  // await typeText(demoPrompt);
 
   console.log("Calling Gemini...");
   const response = await analyzeWithGemini(prompt);
@@ -102,19 +100,6 @@ export async function analyzeAccessibility(
   jsonFilePath: string,
   provider: Provider,
 ): Promise<void> {
-  // const jsonFilePath = process.argv[2];
-  // if (!jsonFilePath) {
-  //   console.error(
-  //     "Usage: npm run ai:claude -- <path-to-json>\n" +
-  //     "       npm run ai:gemini -- <path-to-json>",
-  //   );
-  //   process.exit(1);
-  // }
-
-  // const provider = parseProvider(process.argv);
-  // console.log(`Provider: ${provider}`);
-  // console.log(`Reading snapshot: ${jsonFilePath}`);
-
   const jsonFileContent = await fs.readFile(jsonFilePath, "utf-8");
   // JSON.parse returns `any`; assert the snapshot shape once here so the rest
   // of the module is type-checked. This is an assertion, not validation — a
@@ -122,7 +107,7 @@ export async function analyzeAccessibility(
   const jsonData = JSON.parse(jsonFileContent) as SnapshotFile;
 
   if (provider === "claude") {
-    await runClaude(jsonFilePath, jsonData).catch((err) => {
+    await runClaude(jsonFilePath, jsonData, provider).catch((err) => {
       console.error("Claude analysis failed:", err);
       process.exit(1);
     });
