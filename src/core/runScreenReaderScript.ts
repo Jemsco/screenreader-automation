@@ -1,4 +1,5 @@
 import { chromium, type ElementHandle, type Page } from "playwright";
+import { createInterface } from "node:readline/promises";
 import { getActionableElements } from "./getActionableElements.js";
 import { scanPage } from "./scanner.js";
 import { createSnapshotFile, writeSnapshotFile } from "./snapshotWriter.js";
@@ -40,6 +41,21 @@ export async function runScreenReaderScript(
   await page.setViewportSize({ width: 650, height: 698 });
   await page.goto(options.url, { waitUntil: "networkidle" }); // await page.waitForTimeout(1000);
   console.log("Page loaded");
+
+  if (options.waitForSelector) {
+    console.log(`Waiting for selector: ${options.waitForSelector}`);
+    await page.waitForSelector(options.waitForSelector);
+    console.log("Selector found");
+  }
+
+  if (options.pause) {
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    await rl.question("Press any key to continue...");
+    rl.close();
+  }
 
   console.log(`Starting ${options.screenReaderName}`);
   const results: SnapshotElement[] = [];

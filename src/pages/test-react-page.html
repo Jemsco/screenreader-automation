@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Accessibility Test Page (React)</title>
+
+    <!--
+      React via CDN + in-browser Babel: no build step, so this file is served
+      the same way as test-page.html (e.g. Live Server on 127.0.0.1:5500).
+      Note this renders CLIENT-SIDE — the accessible DOM does not exist at
+      `domcontentloaded`, only after React mounts. That's the whole point of
+      the `--wait-for=<selector>` flag: scan this page with
+      `--wait-for=#test-form` so the scanner waits for React before reading.
+    -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, StrictMode } = React;
+
+      function FormSection() {
+        const [name, setName] = useState("");
+        const [color, setColor] = useState("");
+
+        return (
+          <section>
+            <h2>Form Section</h2>
+            <form
+              id="test-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="name">Name (required)</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                role="textbox"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+
+              <fieldset>
+                <legend>Choose a color</legend>
+                <input
+                  type="radio"
+                  id="red"
+                  name="color"
+                  value="red"
+                  role="radio"
+                  checked={color === "red"}
+                  onChange={() => setColor("red")}
+                />
+                <label htmlFor="red">Red</label>
+
+                <input
+                  type="radio"
+                  id="blue"
+                  name="color"
+                  value="blue"
+                  role="radio"
+                  checked={color === "blue"}
+                  onChange={() => setColor("blue")}
+                />
+                <label htmlFor="blue">Blue</label>
+              </fieldset>
+
+              <button type="submit" role="button">
+                Submit
+              </button>
+            </form>
+          </section>
+        );
+      }
+
+      function ImagesSection() {
+        return (
+          <section>
+            <h2>Images Section</h2>
+            <img src="example.jpg" alt="" role="presentation" />
+            <img src="decorative.png" alt="" role="presentation" />
+          </section>
+        );
+      }
+
+      function LinksSection() {
+        return (
+          <section>
+            <h2>Links Section</h2>
+            <a href="#" role="link">
+              Click me
+            </a>
+            <a href="https://example.com" role="link">
+              Visit Example
+            </a>
+          </section>
+        );
+      }
+
+      function App() {
+        // Simulate async mount (data fetch / code-split): the form is absent
+        // for a beat after load, then appears. This is what a naive scan
+        // (no --wait-for) would race against and miss.
+        const [ready, setReady] = useState(false);
+        useEffect(() => {
+          const t = setTimeout(() => setReady(true), 400);
+          return () => clearTimeout(t);
+        }, []);
+
+        return (
+          <React.Fragment>
+            <header>
+              <h1>Sample Accessibility Test (React)</h1>
+            </header>
+            <main>
+              {ready ? (
+                <React.Fragment>
+                  <FormSection />
+                  <ImagesSection />
+                  <LinksSection />
+                </React.Fragment>
+              ) : (
+                <p>Loading…</p>
+              )}
+            </main>
+            <footer>
+              <p>&copy; 2026 Accessibility Test</p>
+            </footer>
+          </React.Fragment>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(
+        <StrictMode>
+          <App />
+        </StrictMode>,
+      );
+    </script>
+  </body>
+</html>

@@ -86,6 +86,9 @@ export interface RunScreenReaderScriptOptions {
   screenReaderName: ScreenReaderName;
   reader: ScreenReader;
   mode: Mode;
+  pause?: boolean;
+  waitForSelector?: string | null;
+  ß;
   elementSelector: string | null;
   snapshotPath: string | null;
   comparePaths: [string, string] | null;

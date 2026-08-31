@@ -11,6 +11,7 @@ export async function runScreenReader(
   const cli = parseCliArgs(options.argv ?? process.argv);
   const config = getScreenReaderConfig(options.kind);
 
+  const url = cli.url ?? options.url;
   console.log("Mode:", cli.mode);
   console.log(
     "Element selector:",
@@ -23,10 +24,12 @@ export async function runScreenReader(
     options.kind === "voiceover" ? new VoiceOverReader() : new NvdaReader();
 
   await runScreenReaderScript({
-    url: options.url,
+    url,
     screenReaderName: config.label,
     reader,
     mode: cli.mode,
+    pause: cli.pause,
+    waitForSelector: cli.waitForSelector,
     elementSelector: cli.elementSelector,
     snapshotPath: cli.snapshotPath,
     comparePaths: cli.comparePaths,

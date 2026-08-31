@@ -33,7 +33,9 @@ export class NvdaReader implements ScreenReader {
     page: Page,
     target: ElementHandle,
     maxPresses = 10,
+    deadlineMs = 6000,
   ): Promise<boolean> {
+    const started = Date.now();
     for (let i = 0; i < maxPresses; i++) {
       const isFocused = await page.evaluate(
         (el) => document.activeElement === el,
@@ -42,6 +44,10 @@ export class NvdaReader implements ScreenReader {
 
       if (isFocused) {
         return true;
+      }
+
+      if (Date.now() - started >= deadlineMs) {
+        return false;
       }
 
       await this.press("Tab");

@@ -2,6 +2,9 @@ export type Mode = "all" | "actionable";
 
 export interface CliOptions {
   mode: Mode;
+  url: string | null;
+  pause: boolean;
+  waitForSelector: string | null;
   elementSelector: string | null;
   snapshotPath: string | null;
   comparePaths: [string, string] | null;
@@ -10,6 +13,16 @@ export interface CliOptions {
 export function parseCliArgs(args: string[]): CliOptions {
   console.log("args:", args);
   const mode: Mode = args.includes("--mode=all") ? "all" : "actionable";
+
+  const urlArg = args.find((arg) => arg.startsWith("--url="));
+  const url = urlArg ? urlArg.slice("--url=".length) : null;
+
+  const pause = args.includes("--pause");
+
+  const waitForArg = args.find((arg) => arg.startsWith("--wait-for="));
+  const waitForSelector = waitForArg
+    ? waitForArg.slice("--wait-for=".length)
+    : null;
 
   const elementArg = args.find((arg) => arg.startsWith("--element="));
 
@@ -54,6 +67,9 @@ export function parseCliArgs(args: string[]): CliOptions {
 
   return {
     mode,
+    url,
+    pause,
+    waitForSelector,
     elementSelector,
     snapshotPath,
     comparePaths,

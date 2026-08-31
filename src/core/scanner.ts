@@ -15,6 +15,17 @@ export interface ScanPageOptions {
   onResult?: (result: ScanResult) => Promise<void> | void;
 }
 
+function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  onTimeout: T,
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(onTimeout), ms)),
+  ]);
+}
+
 export async function scanPage(
   page: Page,
   reader: ScreenReader,
@@ -26,9 +37,15 @@ export async function scanPage(
     await page.bringToFront();
     await page.waitForTimeout(300);
 
+    const FOCUS_TIMEOUT_MS = 8000;
+
     for (const [index, element] of elements.entries()) {
       await reader.clearLog();
-      const focused = await reader.focusElement(page, element, index, elements);
+      const focused = await withTimeout(
+        reader.focusElement(page, element, index, elements),
+        FOCUS_TIMEOUT_MS,
+        false,
+      );
 
       if (!focused) {
         log(`Could not focus element ${index}`);
