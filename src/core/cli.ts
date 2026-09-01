@@ -11,7 +11,6 @@ export interface CliOptions {
 }
 
 export function parseCliArgs(args: string[]): CliOptions {
-  console.log("args:", args);
   const mode: Mode = args.includes("--mode=all") ? "all" : "actionable";
 
   const urlArg = args.find((arg) => arg.startsWith("--url="));

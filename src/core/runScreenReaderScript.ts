@@ -40,7 +40,6 @@ export async function runScreenReaderScript(
   const page = await browser.newPage();
   await page.setViewportSize({ width: 650, height: 698 });
   await page.goto(options.url, { waitUntil: "networkidle" }); // await page.waitForTimeout(1000);
-  console.log("Page loaded");
 
   if (options.waitForSelector) {
     console.log(`Waiting for selector: ${options.waitForSelector}`);
@@ -133,7 +132,6 @@ export async function runScreenReaderScript(
       results.push(result);
     } else {
       const elements = await getActionableElements(page);
-      console.log(`Found ${elements.length} actionable elements on the page.`);
 
       const scanResults = await scanPage(page, options.reader, {
         async onResult(result) {
