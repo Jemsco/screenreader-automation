@@ -2,18 +2,9 @@ import { voiceOver } from "@guidepup/guidepup";
 import type { ScreenReader } from "./screenReader.js";
 import type { ElementHandle, Page } from "playwright";
 
-const start = performance.now();
-
-function log(message: string) {
-  const elapsed = (performance.now() - start).toFixed(0);
-  console.log(`[${elapsed} ms] ${message}`);
-}
-
 export class VoiceOverReader implements ScreenReader {
   async start(): Promise<void> {
     await voiceOver.start();
-    // console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(voiceOver)));
-    // console.log(Object.keys(voiceOver.commanderCommands));
   }
 
   async clearLog(): Promise<void> {
@@ -24,20 +15,6 @@ export class VoiceOverReader implements ScreenReader {
     command: Parameters<typeof voiceOver.perform>[0],
   ): Promise<void> {
     await voiceOver.perform(command);
-  }
-
-  async syncCursor(): Promise<string> {
-    const start = Date.now();
-
-    log(`moveToFocus START ${start}`);
-    await voiceOver.clearSpokenPhraseLog();
-    log(`clearSpokenPhraseLog completed ${Date.now() - start}ms`);
-
-    await this.perform(
-      voiceOver.commanderCommands.MOVE_VOICEOVER_CURSOR_TO_KEYBOARD_FOCUS,
-    );
-
-    return "";
   }
 
   async describeItemWithKeyboardFocus(): Promise<void> {

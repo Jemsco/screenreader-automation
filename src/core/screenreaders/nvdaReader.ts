@@ -5,12 +5,9 @@ import type { ElementHandle, Page } from "playwright";
 export class NvdaReader implements ScreenReader {
   async start(): Promise<void> {
     await nvda.start();
-    // console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(nvda)));
-    // console.log(Object.keys(nvda.keyboardCommands));
   }
 
   async clearLog(): Promise<void> {
-    // await nvda.clearItemTextLog();
     await nvda.clearSpokenPhraseLog();
   }
 
@@ -55,12 +52,6 @@ export class NvdaReader implements ScreenReader {
     }
 
     return false;
-  }
-
-  async syncCursor(): Promise<string> {
-    // await nvda.perform(nvda.keyboardCommands.moveToFocusObject);
-    // return (await nvda.lastSpokenPhrase()) ?? "";
-    return "";
   }
 
   async waitForAnnouncement(): Promise<string> {
@@ -151,7 +142,6 @@ export class NvdaReader implements ScreenReader {
   }
 
   async clearItemTextLog(): Promise<void> {
-    // await nvda.clearItemTextLog();
     await nvda.clearSpokenPhraseLog();
   }
 

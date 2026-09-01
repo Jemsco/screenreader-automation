@@ -1,11 +1,41 @@
+// HTTP statuses worth retrying — transient rate-limit / server errors.
+const RETRYABLE_STATUS = [429, 500, 502, 503, 504];
+
+/**
+ * Decides whether a failed request should be retried. Returns true after
+ * sleeping the backoff delay (caller should `continue`); returns false when the
+ * status is terminal or attempts are exhausted (caller should throw with the
+ * response detail). Shared by both providers so their retry behavior matches.
+ */
+async function shouldRetry(
+  label: string,
+  status: number,
+  attempt: number,
+  maxRetries: number,
+): Promise<boolean> {
+  if (!RETRYABLE_STATUS.includes(status) || attempt === maxRetries) {
+    return false;
+  }
+
+  const delay = attempt * 2000;
+  console.log(
+    `${label} temporarily unavailable (${status}). ` +
+      `Retrying in ${delay / 1000}s... (attempt ${attempt} of ${maxRetries})`,
+  );
+  await new Promise((r) => setTimeout(r, delay));
+  return true;
+}
+
 // ---------------------------------------------------------------------------
-// Gemini provider — returns a Response for JSON parsing
+// Gemini provider — returns the markdown report text, throwing on failure.
+// Same error contract as the Claude path: callers get either a usable result
+// or an exception, never a non-ok Response to re-check.
 // ---------------------------------------------------------------------------
 
 export async function analyzeWithGemini(
   prompt: string,
   maxRetries = 3,
-): Promise<Response> {
+): Promise<string> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
     throw new Error("GEMINI_API_KEY is missing from environment variables.");
@@ -26,20 +56,26 @@ export async function analyzeWithGemini(
       }),
     });
 
-    if (response.ok) return response;
+    if (!response.ok) {
+      if (await shouldRetry("Gemini", response.status, attempt, maxRetries)) {
+        continue;
+      }
+      const errorText = await response.text();
+      throw new Error(
+        `Gemini API error: ${response.status} ${response.statusText}\n${errorText}`,
+      );
+    } // Gemini wraps its output in a JSON envelope; the `text` part is the
+    // markdown document the prompt asked for.
 
-    const retryable = [429, 500, 502, 503, 504];
-    if (!retryable.includes(response.status) || attempt === maxRetries) {
-      return response;
+    const rawPayload = await response.json();
+    const markdownReport =
+      rawPayload.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!markdownReport) {
+      throw new Error("Failed to extract content from Gemini response.");
     }
-
-    const delay = attempt * 2000;
-    console.log(
-      `Gemini temporarily unavailable (${response.status}). ` +
-        `Retrying in ${delay / 1000}s... (attempt ${attempt} of ${maxRetries})`,
-    );
-    await new Promise((r) => setTimeout(r, delay));
-  }
+    return markdownReport;
+  } // Unreachable in practice — the loop returns or throws on every path — but
+  // satisfies the compiler and guards against a future edit dropping a case.
 
   throw new Error("Gemini request failed after all retry attempts.");
 }
@@ -80,8 +116,7 @@ export async function analyzeWithClaude(
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model,
-        // The audit describes every element on the page; 4096 truncates the
+        model, // The audit describes every element on the page; 4096 truncates the
         // report after the first element. This path streams, so a large cap
         // doesn't risk an HTTP timeout.
         max_tokens: 64000,
@@ -91,21 +126,13 @@ export async function analyzeWithClaude(
     });
 
     if (!response.ok) {
-      const retryable = [429, 500, 502, 503, 504];
-      if (!retryable.includes(response.status) || attempt === maxRetries) {
-        const errorText = await response.text();
-        throw new Error(
-          `Claude API error: ${response.status} ${response.statusText}\n${errorText}`,
-        );
+      if (await shouldRetry("Claude", response.status, attempt, maxRetries)) {
+        continue;
       }
-
-      const delay = attempt * 2000;
-      console.log(
-        `Claude temporarily unavailable (${response.status}). ` +
-          `Retrying in ${delay / 1000}s... (attempt ${attempt} of ${maxRetries})`,
+      const errorText = await response.text();
+      throw new Error(
+        `Claude API error: ${response.status} ${response.statusText}\n${errorText}`,
       );
-      await new Promise((r) => setTimeout(r, delay));
-      continue;
     }
 
     if (!response.body) {
@@ -120,11 +147,9 @@ export async function analyzeWithClaude(
       const { done, value } = await reader.read();
       if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
+      buffer += decoder.decode(value, { stream: true }); // SSE events are separated by double newlines
 
-      // SSE events are separated by double newlines
-      const events = buffer.split("\n\n");
-      // Keep the last incomplete chunk in the buffer
+      const events = buffer.split("\n\n"); // Keep the last incomplete chunk in the buffer
       buffer = events.pop() ?? "";
 
       for (const event of events) {

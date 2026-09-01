@@ -59,23 +59,7 @@ async function runGemini(
   // await typeText(demoPrompt);
 
   console.log("Calling Gemini...");
-  const response = await analyzeWithGemini(prompt);
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Gemini request failed: ${response.status} ${response.statusText}\n${errorText}`,
-    );
-  }
-
-  // Gemini always wraps its output in a JSON envelope; the `text` part is the
-  // markdown document the prompt asked for.
-  const rawPayload = await response.json();
-  const markdownReport = rawPayload.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!markdownReport) {
-    throw new Error("Failed to extract content from Gemini response.");
-  }
+  const markdownReport = await analyzeWithGemini(prompt);
 
   console.log("\n=======================================================");
   console.log("           AI ACCESSIBILITY AUDIT — GEMINI             ");

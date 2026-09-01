@@ -8,6 +8,8 @@ import type { RunScreenReaderScriptOptions } from "./models.js";
 import { compareSnapshotFiles } from "./snapshotComparer.js";
 import { type SnapshotElement } from "./models.js";
 import type { ScreenReader } from "./screenreaders/screenReader.js";
+import { withTimeout } from "./async.js";
+import { FOCUS_TIMEOUT_MS } from "./scanner.js";
 
 export async function runScreenReaderScript(
   options: RunScreenReaderScriptOptions,
@@ -37,29 +39,30 @@ export async function runScreenReaderScript(
 
   console.log("Launching Playwright");
   const browser = await chromium.launch({ headless: false });
-  const page = await browser.newPage();
-  await page.setViewportSize({ width: 650, height: 698 });
-  await page.goto(options.url, { waitUntil: "networkidle" }); // await page.waitForTimeout(1000);
-
-  if (options.waitForSelector) {
-    console.log(`Waiting for selector: ${options.waitForSelector}`);
-    await page.waitForSelector(options.waitForSelector);
-    console.log("Selector found");
-  }
-
-  if (options.pause) {
-    const rl = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    await rl.question("Press any key to continue...");
-    rl.close();
-  }
-
-  console.log(`Starting ${options.screenReaderName}`);
   const results: SnapshotElement[] = [];
 
   try {
+    const page = await browser.newPage();
+    await page.setViewportSize({ width: 650, height: 698 });
+    await page.goto(options.url, { waitUntil: "networkidle" }); // await page.waitForTimeout(1000);
+
+    if (options.waitForSelector) {
+      console.log(`Waiting for selector: ${options.waitForSelector}`);
+      await page.waitForSelector(options.waitForSelector);
+      console.log("Selector found");
+    }
+
+    if (options.pause) {
+      const rl = createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+      await rl.question("Press Enter to continue...");
+      rl.close();
+    }
+
+    console.log(`Starting ${options.screenReaderName}`);
+
     await options.reader.start();
     if (options.elementSelector) {
       console.log(`Targeting element: ${options.elementSelector}`);
@@ -97,11 +100,10 @@ export async function runScreenReaderScript(
       await page.evaluate(() => document.body.focus());
       await page.waitForTimeout(100); // Navigate to the element via real keypresses so NVDA tracks focus
 
-      const focused = await options.reader.focusElement(
-        page,
-        elementHandle,
-        index,
-        elements,
+      const focused = await withTimeout(
+        options.reader.focusElement(page, elementHandle, index, elements),
+        FOCUS_TIMEOUT_MS,
+        false,
       );
 
       if (!focused) {

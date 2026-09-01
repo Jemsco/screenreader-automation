@@ -4,7 +4,7 @@ import type { ScreenReader } from "./screenreaders/screenReader.js";
 import type { Mode } from "./cli.js";
 import type { Page } from "playwright";
 
-export type SnapshotMode = "all" | "actionable";
+export type SnapshotMode = Mode;
 export type ScreenReaderName = "VoiceOver" | "NVDA";
 
 export interface DomInfo {
@@ -88,7 +88,6 @@ export interface RunScreenReaderScriptOptions {
   mode: Mode;
   pause?: boolean;
   waitForSelector?: string | null;
-  ß;
   elementSelector: string | null;
   snapshotPath: string | null;
   comparePaths: [string, string] | null;

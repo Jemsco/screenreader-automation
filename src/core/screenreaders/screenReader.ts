@@ -9,7 +9,6 @@ export interface ScreenReader {
     index: number,
     elements: ElementHandle[],
   ): Promise<boolean>;
-  syncCursor(): Promise<string>;
   press(key: string): Promise<void>;
   waitForAnnouncement(): Promise<string>;
   normalizeAnnouncement(text: string): Promise<string>;

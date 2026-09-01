@@ -10,28 +10,22 @@ export interface CliOptions {
   comparePaths: [string, string] | null;
 }
 
+function flagValue(args: string[], name: string): string | null {
+  const prefix = `${name}=`;
+  const arg = args.find((arg) => arg.startsWith(prefix));
+  return arg ? arg.slice(prefix.length) : null;
+}
+
 export function parseCliArgs(args: string[]): CliOptions {
+  console.log("Parsing CLI args", args);
   const mode: Mode = args.includes("--mode=all") ? "all" : "actionable";
 
-  const urlArg = args.find((arg) => arg.startsWith("--url="));
-  const url = urlArg ? urlArg.slice("--url=".length) : null;
+  const url = flagValue(args, "--url");
 
   const pause = args.includes("--pause");
-
-  const waitForArg = args.find((arg) => arg.startsWith("--wait-for="));
-  const waitForSelector = waitForArg
-    ? waitForArg.slice("--wait-for=".length)
-    : null;
-
-  const elementArg = args.find((arg) => arg.startsWith("--element="));
-
-  const elementSelector = elementArg?.substring("--element=".length) ?? null;
-
-  const snapshotArg = args.find((a) => a.startsWith("--snapshot="));
-  const snapshotPath = snapshotArg
-    ? snapshotArg.split("=").slice(1).join("=")
-    : null;
-
+  const waitForSelector = flagValue(args, "--wait-for");
+  const elementSelector = flagValue(args, "--element");
+  const snapshotPath = flagValue(args, "--snapshot");
   const compareIdx = args.indexOf("--compare");
   let comparePaths: [string, string] | null = null;
 

@@ -3,28 +3,14 @@ import type { Page } from "playwright";
 import { getElementInfo } from "./getElementInfo.js";
 import type { ScreenReader } from "./screenreaders/screenReader.js";
 import type { ScanResult } from "./models.js";
-
-const start = performance.now();
-
-function log(message: string) {
-  const elapsed = (performance.now() - start).toFixed(0);
-  console.log(`[${elapsed} ms] ${message}`);
-}
+import { log } from "./logs.js";
+import { withTimeout } from "./async.js";
 
 export interface ScanPageOptions {
   onResult?: (result: ScanResult) => Promise<void> | void;
 }
 
-function withTimeout<T>(
-  promise: Promise<T>,
-  ms: number,
-  onTimeout: T,
-): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(onTimeout), ms)),
-  ]);
-}
+export const FOCUS_TIMEOUT_MS = 8000;
 
 export async function scanPage(
   page: Page,
@@ -36,8 +22,6 @@ export async function scanPage(
     const results: ScanResult[] = [];
     await page.bringToFront();
     await page.waitForTimeout(300);
-
-    const FOCUS_TIMEOUT_MS = 8000;
 
     for (const [index, element] of elements.entries()) {
       await reader.clearLog();
